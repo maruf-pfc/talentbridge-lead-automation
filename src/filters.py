@@ -8,35 +8,23 @@ def normalize(text: str) -> str:
     return re.sub(r'[^\w\s]', '', text.lower().strip())
 
 def is_dev_role(title: str, tags: list) -> bool:
-    """Return True ONLY if role is clearly a developer/engineering position."""
     text = f"{title} {' '.join(tags)}".lower()
     
-    # Must contain at least ONE core dev keyword
-    dev_keywords = [
-        "developer", "engineer", "dev", "software", "backend", "frontend", 
-        "fullstack", "full-stack", "python", "javascript", "react", "node", 
-        "java", "go", "rust", "ruby", "php", "ios", "android", "mobile dev",
-        "web dev", "api developer", "data engineer", "ml engineer", "ai engineer",
-        "cloud engineer", "devops", "site reliability", "sre"
-    ]
+    # BLOCK test/demo postings immediately
+    if any(x in text for x in ["test job", "demo", "sample", "placeholder", "[test]", "test posting"]):
+        return False
+    
+    # MUST have core dev keyword
+    dev_keywords = ["developer", "engineer", "dev ", "software", "backend", "frontend", "fullstack", "python", "javascript", "react", "node", "java", "go", "rust", "ruby", "devops", "sre", "ml engineer", "data engineer"]
     if not any(kw in text for kw in dev_keywords):
         return False
     
-    # Must NOT contain non-dev role indicators
-    non_dev_keywords = [
-        "manager", "director", "vp", "head of", "lead" in text and "engineer" not in text,
-        "sales", "marketing", "support", "customer success", "hr", "recruiter",
-        "finance", "legal", "operations" in text and "devops" not in text,
-        "business development", "account manager", "project manager" in text and "technical" not in text,
-        "ux", "ui", "designer" in text and "engineer" not in text,
-        "medical", "clinical", "healthcare" in text and "engineer" not in text,
-        "paid media", "growth marketer", "seo", "content", "writer"
-    ]
-    if any(kw in text for kw in non_dev_keywords if isinstance(kw, str)):
-        # Special case: "Technical Project Manager" is okay
-        if "technical" in text and ("project manager" in text or "program manager" in text):
-            return True
-        return False
+    # BLOCK non-dev titles UNLESS they contain "engineer" or "developer"
+    block_terms = ["director", "vp", "head of", "manager", "sales", "marketing", "support", "customer success", "business development", "paid media", "medical", "clinical", "ux ", "ui ", "designer", "operations", "strategy", "recruiter", "hr", "finance", "legal"]
+    if any(term in text for term in block_terms):
+        # Exception: "Technical Program Manager", "Engineering Manager" are okay
+        if not any(allow in text for allow in ["engineer", "developer", "technical program", "engineering manager"]):
+            return False
     
     return True
 

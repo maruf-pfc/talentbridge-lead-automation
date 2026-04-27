@@ -1,19 +1,52 @@
 name: Daily Lead Scraper
+
 on:
   schedule:
-    - cron: "0 14 * * *" # 9 AM EST / 10 AM EDT (GitHub cron uses UTC)
-  workflow_dispatch:
+    # 9 AM EST = 14:00 UTC (winter) / 13:00 UTC (summer)
+    # Using 14:00 UTC ensures 9 AM EST in winter; summer will be 10 AM EDT
+    # For strict 9 AM year-round, consider a Python-based time check in main.py
+    - cron: '0 14 * * *'
+  workflow_dispatch:  # Allow manual trigger for testing
 
 jobs:
-  run:
+  run-scraper:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
     env:
-      TZ: America/New_York
+      TZ: America/New_York  # Ensure logs/timestamps use EST
       GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}
+      PYTHONUNBUFFERED: 1   # Force immediate log output
+    
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - run: pip install -r requirements.txt
-      - run: python main.py
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Write credentials to file
+        run: |
+          echo "$GOOGLE_CREDS_JSON" > credentials.json
+          chmod 600 credentials.json
+
+      - name: Run scraper
+        run: python main.py
+
+      - name: Upload logs as artifact (for debugging)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scraper-logs-${{ github.run_id }}
+          path: |
+            run.log
+            credentials.json
+          retention-days: 7

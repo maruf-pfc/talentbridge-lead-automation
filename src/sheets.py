@@ -44,7 +44,7 @@ def push_to_sheets(jobs: list, cfg: dict) -> tuple:
 
     new_rows, dup_rows, added, skipped = [], [], 0, 0
     for job in jobs:
-        key = (job["company"].lower(), job["title"].lower(), job["location"].lower())
+        key = (job["company"].lower(), job["title"].lower(), job["url"].lower())
         row = [job["company"], job["industry"], job["title"], job["location"], job["url"], job["date_posted"], get_est()]
         if key in seen:
             dup_rows.append([job["company"], job["title"], job["url"], get_est()])
