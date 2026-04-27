@@ -6,10 +6,20 @@
     "keywords": [
       "developer",
       "engineer",
-      "frontend",
+      "software",
       "backend",
+      "frontend",
       "fullstack",
-      "software"
+      "python",
+      "javascript",
+      "react",
+      "node",
+      "java",
+      "go",
+      "rust",
+      "ruby",
+      "devops",
+      "sre"
     ],
     "locations": [
       "remote",
@@ -17,17 +27,33 @@
       "us",
       "usa",
       "united kingdom",
-      "uk"
+      "uk",
+      "worldwide",
+      "anywhere",
+      "global"
     ],
-    "exclude": ["intern", "internship", "contract", "freelance", "temporary"]
+    "exclude": [
+      "intern",
+      "internship",
+      "contract",
+      "freelance",
+      "part-time",
+      "sales",
+      "marketing",
+      "support",
+      "customer",
+      "manager",
+      "director",
+      "vp",
+      "head of",
+      "ux",
+      "ui",
+      "designer",
+      "medical",
+      "paid media",
+      "business development"
+    ]
   },
-  "logging": {
-    "level": "INFO",
-    "file": "run.log"
-  },
-  "scraping": {
-    "delay_seconds": 2,
-    "max_retries": 1,
-    "timeout_seconds": 15
-  }
+  "logging": { "level": "INFO", "file": "run.log" },
+  "scraping": { "delay_seconds": 1, "max_retries": 1, "timeout_seconds": 15 }
 }
