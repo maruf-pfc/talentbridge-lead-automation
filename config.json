@@ -3,11 +3,31 @@
   "leads_tab": "Leads",
   "duplicates_tab": "Duplicates Log",
   "filters": {
-    "keywords": ["developer", "engineer", "frontend", "backend", "fullstack"],
-    "locations": ["remote", "united states", "us", "united kingdom", "uk"],
-    "exclude": ["intern", "contract", "freelance"]
+    "keywords": [
+      "developer",
+      "engineer",
+      "frontend",
+      "backend",
+      "fullstack",
+      "software"
+    ],
+    "locations": [
+      "remote",
+      "united states",
+      "us",
+      "usa",
+      "united kingdom",
+      "uk"
+    ],
+    "exclude": ["intern", "internship", "contract", "freelance", "temporary"]
   },
-  "log_level": "INFO",
-  "retry_attempts": 1,
-  "request_delay_sec": 2
+  "logging": {
+    "level": "INFO",
+    "file": "run.log"
+  },
+  "scraping": {
+    "delay_seconds": 2,
+    "max_retries": 1,
+    "timeout_seconds": 15
+  }
 }
