@@ -1,0 +1,13 @@
+{
+  "sheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms",
+  "leads_tab": "Leads",
+  "duplicates_tab": "Duplicates Log",
+  "filters": {
+    "keywords": ["developer", "engineer", "frontend", "backend", "fullstack"],
+    "locations": ["remote", "united states", "us", "united kingdom", "uk"],
+    "exclude": ["intern", "contract", "freelance"]
+  },
+  "log_level": "INFO",
+  "retry_attempts": 1,
+  "request_delay_sec": 2
+}
