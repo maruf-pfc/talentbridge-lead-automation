@@ -1,8 +1,57 @@
+# Python
 __pycache__/
-*.pyc
-.env
-env/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
 venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Credentials & secrets (NEVER commit these)
 credentials.json
+service_account.json
+*.pem
+.env
+*.key
+
+# Logs
 run.log
-EOF
+*.log
+logs/
+
+# Local config overrides (optional)
+config.local.json
+
+# Delivery artifacts
+talentbridge-scraper-*.zip
+delivery-proof-*.png
