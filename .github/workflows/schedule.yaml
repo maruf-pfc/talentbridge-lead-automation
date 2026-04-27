@@ -1,0 +1,19 @@
+name: Daily Lead Scraper
+on:
+  schedule:
+    - cron: "0 14 * * *" # 9 AM EST / 10 AM EDT (GitHub cron uses UTC)
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      TZ: America/New_York
+      GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python main.py
