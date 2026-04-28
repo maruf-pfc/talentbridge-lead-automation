@@ -23,7 +23,9 @@ BLOCK_TERMS = [
     "intern", "contract", "freelance", "sales", "marketing", "support", "customer success",
     "medical", "clinical", "ux ", "ui ", "designer", "business development", "operations manager",
     "account executive", "sdr", "bdr", "recruiter", "hr ", "finance", "legal", "copywriter",
-    "paid media", "growth marketer", "content writer", "writer", "editor"
+    "paid media", "growth marketer", "content writer", "writer", "editor",
+    # Add test/demo keywords to block at title level
+    " sample ", " demo ", " [test]", "test job", " placeholder "
 ]
 
 # LOCATION PASS-LIST: Simple substring match per Rachel's spec
@@ -52,10 +54,16 @@ def check_location(location: str) -> tuple[bool, bool]:
     - If location is empty/unknown → valid BUT unverified (flag for sheet)
     - Everything else → invalid (block)
     """
-    if not location or normalize(location) in ["unknown", "n/a", ""]:
-        return True, True  # Pass but flag as unverified
+    if not location:
+        return True, True  # Empty string → unverified
     
-    loc = normalize(location)
+    loc_normalized = normalize(location)
+    
+    # Check for unknown/empty variants (using normalized values)
+    if loc_normalized in ["unknown", "na", ""]:  # "N/A" normalizes to "na"
+        return True, True
+    
+    loc = loc_normalized
     is_valid = any(target in loc for target in PASS_LOCATIONS)
     return is_valid, False
 
