@@ -109,6 +109,23 @@ PASS_LOCATIONS = ["remote", "us", "uk", "canada", ...]  # Location whitelist
 }
 ```
 
+### 🌍 Expanding to EU/Other Regions
+
+The scraper currently filters for **Remote, US, UK, Canada, North America only** per TalentBridge's placement focus.
+
+To expand to EU/Asia placements:
+
+1. Open `src/filters.py`
+2. Add region keywords to `PASS_LOCATIONS`:
+   ```python
+   PASS_LOCATIONS = [
+       "remote", "us", "uk", "canada", "north america",
+       # Add EU/Asia regions below:
+       "europe", "germany", "berlin", "france", "paris",
+       "singapore", "australia", "apac", "emea"
+   ]
+   ```
+
 ---
 
 ## 📊 Sheet Structure
@@ -194,4 +211,19 @@ pip install pytest
 
 # Run unit tests
 pytest tests/ -v
+```
+
+### Test Result
+
+```txt
+tests/test_filters.py::test_is_dev_role_allows_engineer PASSED                 [ 10%]
+tests/test_filters.py::test_is_dev_role_blocks_non_dev PASSED                  [ 20%]
+tests/test_filters.py::test_is_dev_role_blocks_test_postings FAILED            [ 30%]
+tests/test_filters.py::test_is_dev_role_allows_technical_managers PASSED       [ 40%]
+tests/test_filters.py::test_check_location_valid PASSED                        [ 50%]
+tests/test_filters.py::test_check_location_unverified PASSED                   [ 60%]
+tests/test_filters.py::test_check_location_invalid PASSED                      [ 70%]
+tests/test_filters.py::test_passes_filters_integration PASSED                  [ 80%]
+tests/test_scraper.py::test_fetch_remoteok_jobs_structure SKIPPED (Integra...) [ 90%]
+tests/test_scraper.py::test_fetch_himalayas_jobs_structure SKIPPED (Integr...) [100%]
 ```
