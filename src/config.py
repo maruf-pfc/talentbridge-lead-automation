@@ -10,10 +10,7 @@ def load_config(path: str = "config.json") -> Dict[str, Any]:
     config_path = Path(path)
     
     if not config_path.exists():
-        raise FileNotFoundError(
-            f"Config file not found at {path}. "
-            f"Copy config.example.json to {path} and update values."
-        )
+        raise FileNotFoundError(f"Config file not found at {path}")
     
     try:
         with open(config_path, "r", encoding="utf-8") as f:
@@ -22,7 +19,7 @@ def load_config(path: str = "config.json") -> Dict[str, Any]:
         raise ValueError(f"Invalid JSON in {path}: {e}")
     
     # Validate required fields
-    required = ["sheet_id", "leads_tab", "duplicates_tab", "filters"]
+    required = ["sheet_id", "leads_tab", "duplicates_tab"]
     missing = [key for key in required if key not in config]
     if missing:
         raise ValueError(f"Missing required config keys: {missing}")

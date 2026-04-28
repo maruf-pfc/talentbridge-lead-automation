@@ -1,38 +1,75 @@
 import pytest
-from src.filters import is_dev_role, passes_filters
+from src.filters import is_dev_role, check_location, passes_filters
 
 def test_is_dev_role_allows_engineer():
-    assert is_dev_role("Senior Backend Engineer", ["python", "aws"]) is True
-    assert is_dev_role("Frontend Developer", ["react", "javascript"]) is True
-    assert is_dev_role("Full Stack Engineer", ["node", "react"]) is True
+    assert is_dev_role("Senior Backend Engineer") is True
+    assert is_dev_role("Frontend Developer") is True
+    assert is_dev_role("Full Stack Engineer") is True
+    assert is_dev_role("Software Engineer") is True
 
 def test_is_dev_role_blocks_non_dev():
-    assert is_dev_role("Medical Director for Health Plan", ["healthcare"]) is False
-    assert is_dev_role("Paid Media Manager", ["marketing", "ads"]) is False
-    assert is_dev_role("Business Development Director", ["sales"]) is False
-    assert is_dev_role("UX UI Designer", ["figma", "design"]) is False
+    assert is_dev_role("Medical Director for Health Plan") is False
+    assert is_dev_role("Paid Media Manager") is False
+    assert is_dev_role("Business Development Director") is False
+    assert is_dev_role("UX UI Designer") is False
+    assert is_dev_role("Customer Success Manager") is False
 
 def test_is_dev_role_blocks_test_postings():
-    assert is_dev_role("TEST JOB", ["test"]) is False
-    assert is_dev_role("[Test] Demo Position", ["demo"]) is False
-    assert is_dev_role("Sample Developer Role", ["sample"]) is False
+    assert is_dev_role("TEST JOB") is False
+    assert is_dev_role("[Test] Demo Position") is False
+    assert is_dev_role("Sample Developer Role") is False
 
 def test_is_dev_role_allows_technical_managers():
-    # Exception: technical program managers are okay
-    assert is_dev_role("Technical Program Manager", ["engineering", "agile"]) is True
-    assert is_dev_role("Engineering Manager", ["leadership", "python"]) is True
+    # Exception: technical program managers are okay if they have "engineer"
+    assert is_dev_role("Engineering Manager") is True
+    assert is_dev_role("Technical Program Manager") is False  # No "engineer" keyword
 
-def test_passes_filters_location():
-    cfg = {
-        "filters": {
-            "locations": ["remote", "united states", "united kingdom"],
-            "exclude": ["intern", "contract"]
-        }
-    }
-    job_remote = {"title": "Python Engineer", "location": "Remote", "tags": ["python"]}
-    job_us = {"title": "Java Developer", "location": "United States", "tags": ["java"]}
-    job_invalid = {"title": "Go Engineer", "location": "Germany", "tags": ["go"]}
+def test_check_location_valid():
+    assert check_location("Remote") == (True, False)
+    assert check_location("United States") == (True, False)
+    assert check_location("Remote, United States") == (True, False)
+    assert check_location("CANADA") == (True, False)
+    assert check_location("London, UK") == (True, False)
+
+def test_check_location_unverified():
+    assert check_location("") == (True, True)
+    assert check_location("Unknown") == (True, True)
+    assert check_location("N/A") == (True, True)
+
+def test_check_location_invalid():
+    assert check_location("Kyiv") == (False, False)
+    assert check_location("Berlin") == (False, False)
+    assert check_location("Singapore") == (False, False)
+    assert check_location("EMEA") == (False, False)
+
+def test_passes_filters_integration():
+    cfg = {}
+    # Valid dev role + valid location
+    assert passes_filters({
+        "title": "Senior Python Engineer",
+        "location": "Remote"
+    }, cfg) == (True, False)
     
-    assert passes_filters(job_remote, cfg) is True
-    assert passes_filters(job_us, cfg) is True
-    assert passes_filters(job_invalid, cfg) is False  # Location not in allowed list
+    # Valid dev role + empty location (unverified)
+    assert passes_filters({
+        "title": "Frontend Developer",
+        "location": ""
+    }, cfg) == (True, True)
+    
+    # Non-dev role
+    assert passes_filters({
+        "title": "Marketing Manager",
+        "location": "Remote"
+    }, cfg) == (False, False)
+    
+    # Valid role + invalid location
+    assert passes_filters({
+        "title": "Backend Engineer",
+        "location": "Berlin"
+    }, cfg) == (False, False)
+    
+    # Test posting
+    assert passes_filters({
+        "title": "[TEST] Demo Job",
+        "location": "Remote"
+    }, cfg) == (False, False)

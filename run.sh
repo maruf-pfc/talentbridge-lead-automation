@@ -1,5 +1,5 @@
 #!/bin/bash
-# TalentBridge Lead Automation
+# TalentBridge Scraper Runner
 # Usage: ./run.sh
 
 set -e  # Exit on error
