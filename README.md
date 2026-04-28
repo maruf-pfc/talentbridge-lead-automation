@@ -1,21 +1,26 @@
-# TalentBridge Lead Automation
+# TalentBridge Lead Scraper 🎯
 
-Automated Python scraper that fetches **developer-only job leads** from RemoteOK and pushes them to your Google Sheet. Built for Rachel Kim @ TalentBridge.
+Automated Python scraper that fetches **developer-only job leads** from RemoteOK and Himalayas.app, then pushes them to your Google Sheet. Built for Rachel Kim @ TalentBridge.
 
-## Features
+---
 
-- **Dev-role filtering**: Only "Engineer", "Developer", or "Dev" titles pass through
+## ✅ Features
+
+- **Dev-role filtering**: Only "Engineer", "Developer", "Architect", or "Software" titles pass through
 - **Block test/demo posts**: Filters out "[TEST]", "Demo Job", "Sample Posting", etc.
-- **Location normalization**: Standardizes "Remote", "United States", "United Kingdom"
+- **Location gate**: Accepts Remote, US, UK, Canada, North America only (configurable)
+- **Location Unverified flag**: Empty/unknown locations pass but are flagged for review
 - **URL-based dedup**: Prevents duplicates even if location strings vary
 - **Google Sheets integration**: Append-only, exact column order, EST timestamps
 - **Duplicates Log**: Separate tab tracks skipped entries with timestamps
 - **Scheduled runs**: GitHub Actions cron at 9 AM EST daily
 - **Manual run**: One-command execution for ad-hoc updates
-- **Zero paid APIs**: Uses RemoteOK's public JSON API
-- **Config-driven filters**: Edit `config.json` to adjust keywords/locations without code changes
+- **Zero paid APIs**: Uses RemoteOK's public JSON API + Himalayas HTML scraping
+- **Config-driven filters**: Edit `src/filters.py` to adjust keywords/locations without code changes
 
-## Quick Start
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
@@ -56,7 +61,9 @@ run.bat           # Windows
 - Open your Google Sheet → `Leads` tab should have new rows
 - Check `Duplicates Log` tab for skipped entries
 
-## Scheduled Runs (GitHub Actions)
+---
+
+## ⏰ Scheduled Runs (GitHub Actions)
 
 ### Setup
 
@@ -77,44 +84,48 @@ env:
   TZ: America/New_York # Ensures logs/timestamps use EST
 ```
 
-## Configuration (`config.json`)
+---
 
-Edit filters without touching code:
+## ⚙️ Configuration
+
+### Filters (`src/filters.py`)
+
+Edit these lists to tune filtering without code changes:
+
+```python
+DEV_TERMS = ["engineer", "developer", "software", ...]  # Title whitelist
+BLOCK_TERMS = ["intern", "sales", "marketing", ...]     # Title blocklist
+PASS_LOCATIONS = ["remote", "us", "uk", "canada", ...]  # Location whitelist
+```
+
+### Config (`config.json`)
 
 ```json
 {
   "sheet_id": "YOUR_SHEET_ID",
   "leads_tab": "Leads",
   "duplicates_tab": "Duplicates Log",
-  "filters": {
-    "keywords": ["developer", "engineer", "software", "backend", "frontend"],
-    "locations": ["remote", "united states", "us", "united kingdom", "uk"],
-    "exclude": ["intern", "contract", "sales", "marketing", "medical"]
-  },
-  "logging": { "level": "INFO", "file": "run.log" },
-  "scraping": { "delay_seconds": 1, "max_retries": 1, "timeout_seconds": 15 }
+  "logging": { "level": "INFO", "file": "run.log" }
 }
 ```
 
-### Filter Logic
+---
 
-- **keywords**: Job must contain at least ONE of these in title or tags
-- **locations**: Accept jobs with these location strings (plus "Remote"/"Worldwide")
-- **exclude**: Block jobs containing any of these terms
-
-## Sheet Structure
+## 📊 Sheet Structure
 
 ### Tab: `Leads` (exact column order)
 
-| A       | B        | C         | D        | E       | F           | G          |
-| ------- | -------- | --------- | -------- | ------- | ----------- | ---------- |
-| Company | Industry | Job Title | Location | Job URL | Date Posted | Date Added |
+| A       | B        | C         | D        | E       | F           | G          | H                   |
+| ------- | -------- | --------- | -------- | ------- | ----------- | ---------- | ------------------- |
+| Company | Industry | Job Title | Location | Job URL | Date Posted | Date Added | Location Unverified |
 
 ### Tab: `Duplicates Log`
 
 | A       | B     | C   | D          |
 | ------- | ----- | --- | ---------- |
 | Company | Title | URL | Skipped On |
+
+---
 
 ## 🐛 Troubleshooting
 
@@ -138,27 +149,36 @@ Edit filters without touching code:
 - Check GitHub Actions tab for run history
 - Ensure `GOOGLE_CREDS_JSON` secret is set correctly
 
-## Security Notes
+### Himalayas jobs not appearing
+
+- Himalayas jobs often have EU/Asia locations which fail the location gate
+- To include them, add `"europe"`, `"germany"`, etc. to `PASS_LOCATIONS` in `src/filters.py`
+
+---
+
+## 🔐 Security Notes
 
 - Never commit `credentials.json` to version control (already in `.gitignore`)
 - Use GitHub Secrets for CI/CD credentials
 - Rotate service account keys periodically via Google Cloud Console
 
-## Development
+---
+
+## 🛠️ Development
 
 ### Project Structure
 
-```txt
-talentbridge-lead-automation/
+```
+talentbridge-scraper/
 ├── .github/workflows/schedule.yaml  # GitHub Actions cron
 ├── src/
 │   ├── __init__.py
 │   ├── config.py    # Config loader
 │   ├── filters.py   # Dev-role filtering logic
-│   ├── scraper.py   # RemoteOK API fetcher
+│   ├── scraper.py   # RemoteOK + Himalayas fetchers
 │   ├── sheets.py    # Google Sheets handler
 │   └── utils.py     # Logging, time, helpers
-├── config.json      # Editable filters
+├── config.json      # Sheet ID + logging config
 ├── main.py          # Entry point
 ├── requirements.txt # Python dependencies
 ├── run.sh / run.bat # Runner scripts
@@ -166,20 +186,12 @@ talentbridge-lead-automation/
 └── .gitignore       # Excludes credentials, logs, etc.
 ```
 
-### Run Tests (Optional)
+### Run Tests
 
 ```bash
 # Install test dependencies
-pip3 install pytest
+pip install pytest
 
 # Run unit tests
-pytest tests/
+pytest tests/ -v
 ```
-
-## Support & Warranty
-
-- **30-day structural fix warranty**: If RemoteOK changes their API format, I'll patch the scraper free within 30 days of delivery
-- **Monitoring**: First 3 scheduled runs are monitored silently for failures
-- **Contact**: Reply to this repo or email [mmsmaruf.official.com] for urgent issues
-
-_Built for TalentBridge — Delivering quality leads, automatically._

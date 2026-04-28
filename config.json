@@ -3,57 +3,26 @@
   "leads_tab": "Leads",
   "duplicates_tab": "Duplicates Log",
   "filters": {
-    "keywords": [
-      "developer",
-      "engineer",
-      "software",
-      "backend",
-      "frontend",
-      "fullstack",
-      "python",
-      "javascript",
-      "react",
-      "node",
-      "java",
-      "go",
-      "rust",
-      "ruby",
-      "devops",
-      "sre"
-    ],
+    "note": "Title/location filtering is enforced in src/filters.py. Edit DEV_TERMS/BLOCK_TERMS/PASS_LOCATIONS there.",
     "locations": [
       "remote",
-      "united states",
       "us",
       "usa",
-      "united kingdom",
+      "united states",
+      "canada",
       "uk",
-      "worldwide",
-      "anywhere",
-      "global"
+      "united kingdom",
+      "north america"
     ],
-    "exclude": [
-      "intern",
-      "internship",
-      "contract",
-      "freelance",
-      "part-time",
-      "sales",
-      "marketing",
-      "support",
-      "customer",
-      "manager",
-      "director",
-      "vp",
-      "head of",
-      "ux",
-      "ui",
-      "designer",
-      "medical",
-      "paid media",
-      "business development"
-    ]
+    "exclude": ["intern", "contract", "freelance"]
   },
-  "logging": { "level": "INFO", "file": "run.log" },
-  "scraping": { "delay_seconds": 1, "max_retries": 1, "timeout_seconds": 15 }
+  "logging": {
+    "level": "INFO",
+    "file": "run.log"
+  },
+  "scraping": {
+    "delay_seconds": 1,
+    "max_retries": 1,
+    "timeout_seconds": 15
+  }
 }

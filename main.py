@@ -9,22 +9,32 @@ def main():
     cfg = load_config()
     setup_logging(cfg)
     logger = logging.getLogger(__name__)
-    
+
     logger.info("=== TalentBridge Scraper ===")
+    
+    # Fetch jobs from all sources
     raw_jobs = fetch_all_jobs(cfg)
     logger.info(f"Raw jobs fetched: {len(raw_jobs)}")
+
+    # Filter jobs and attach location_unverified flag
+    filtered = []
+    for job in raw_jobs:
+        should_include, is_unverified = passes_filters(job, cfg)
+        if should_include:
+            job["location_unverified"] = is_unverified
+            filtered.append(job)
     
-    filtered = [j for j in raw_jobs if passes_filters(j, cfg)]
     logger.info(f"Passed filters: {len(filtered)}")
-    
-    # Guarantee minimum for delivery proof
+
+    # Volume guardrail (log warning if <15, but don't pad)
     if len(filtered) < 15:
-        logger.warning(f"Only {len(filtered)} qualified jobs; relaxing location filter temporarily...")
-        # Re-run with broader location acceptance if needed
-        cfg["filters"]["locations"].extend(["kyiv", "los angeles", "united states of america"])
-        filtered = [j for j in raw_jobs if passes_filters(j, cfg)]
-    
+        logger.warning(f"⚠️ VOLUME ALERT: Only {len(filtered)} clean leads today.")
+    else:
+        logger.info(f"✅ Target met: {len(filtered)} clean dev leads.")
+
+    # Push to Google Sheets
     added, skipped = push_to_sheets(filtered, cfg)
+    
     logger.info(f"FINAL | Found: {len(filtered)} | Added: {added} | Duplicates: {skipped}")
     logger.info("=== Done ===")
 

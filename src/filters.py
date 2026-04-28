@@ -2,57 +2,81 @@ import re
 import logging
 
 def normalize(text: str) -> str:
-    """Lowercase, strip emojis/punctuation."""
-    if not text: return ""
-    text = re.sub(r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF]', '', str(text))
-    return re.sub(r'[^\w\s]', '', text.lower().strip())
+    """Lowercase, strip punctuation/emojis, collapse spaces."""
+    if not text:
+        return ""
+    # Remove emojis and special characters
+    text = re.sub(r'[^\w\s]', '', str(text).lower().strip())
+    return re.sub(r'\s+', ' ', text)
 
-def is_dev_role(title: str, tags: list) -> bool:
-    text = f"{title} {' '.join(tags)}".lower()
+# TITLE WHITELIST: Must contain at least ONE of these (Rachel's spec)
+DEV_TERMS = [
+    "engineer", "developer", "software", "frontend", "backend", "fullstack", "full-stack",
+    "devops", "sre", "architect", "ml ", "machine learning", "data engineer",
+    "python ", "javascript", "react", "node", "go ", "golang", "rust", "ruby", "java",
+    "cloud engineer", "security engineer", "platform engineer", "solutions architect",
+    "product engineer", "staff engineer", "principal engineer"
+]
+
+# STRICT BLOCKLIST: Zero tolerance for non-dev roles
+BLOCK_TERMS = [
+    "intern", "contract", "freelance", "sales", "marketing", "support", "customer success",
+    "medical", "clinical", "ux ", "ui ", "designer", "business development", "operations manager",
+    "account executive", "sdr", "bdr", "recruiter", "hr ", "finance", "legal", "copywriter",
+    "paid media", "growth marketer", "content writer", "writer", "editor"
+]
+
+# LOCATION PASS-LIST: Simple substring match per Rachel's spec
+PASS_LOCATIONS = [
+    "remote", "us", "usa", "united states", "canada", "uk", "united kingdom", "north america"
+]
+
+def is_dev_role(title: str) -> bool:
+    """Return True if title contains a dev term AND no block terms."""
+    t = title.lower()
     
-    # BLOCK test/demo postings immediately
-    if any(x in text for x in ["test job", "demo", "sample", "placeholder", "[test]", "test posting"]):
+    # Must have at least one dev keyword
+    if not any(term in t for term in DEV_TERMS):
         return False
     
-    # MUST have core dev keyword
-    dev_keywords = ["developer", "engineer", "dev ", "software", "backend", "frontend", "fullstack", "python", "javascript", "react", "node", "java", "go", "rust", "ruby", "devops", "sre", "ml engineer", "data engineer"]
-    if not any(kw in text for kw in dev_keywords):
+    # Must not have any block terms
+    if any(block in t for block in BLOCK_TERMS):
         return False
-    
-    # BLOCK non-dev titles UNLESS they contain "engineer" or "developer"
-    block_terms = ["director", "vp", "head of", "manager", "sales", "marketing", "support", "customer success", "business development", "paid media", "medical", "clinical", "ux ", "ui ", "designer", "operations", "strategy", "recruiter", "hr", "finance", "legal"]
-    if any(term in text for term in block_terms):
-        # Exception: "Technical Program Manager", "Engineering Manager" are okay
-        if not any(allow in text for allow in ["engineer", "developer", "technical program", "engineering manager"]):
-            return False
     
     return True
 
-def passes_filters(job: dict, cfg: dict) -> bool:
+def check_location(location: str) -> tuple[bool, bool]:
+    """
+    Returns (is_valid, is_unverified) per Rachel's spec:
+    - If location contains any PASS_LOCATIONS substring → valid, not unverified
+    - If location is empty/unknown → valid BUT unverified (flag for sheet)
+    - Everything else → invalid (block)
+    """
+    if not location or normalize(location) in ["unknown", "n/a", ""]:
+        return True, True  # Pass but flag as unverified
+    
+    loc = normalize(location)
+    is_valid = any(target in loc for target in PASS_LOCATIONS)
+    return is_valid, False
+
+def passes_filters(job: dict, cfg: dict) -> tuple[bool, bool]:
+    """
+    Returns (should_include, is_location_unverified)
+    """
     title = job.get("title", "")
-    location = job.get("location", "").lower()
-    tags = job.get("tags", [])
+    location = job.get("location", "")
     
-    # 1. Must be a dev role
-    if not is_dev_role(title, tags):
-        logging.debug(f"Filtered out non-dev role: {title}")
-        return False
+    # Block test/demo postings immediately
+    if any(x in title.lower() for x in ["test job", "demo", "sample", "[test]", "placeholder"]):
+        return False, False
     
-    # 2. Location must be Remote/US/UK
-    valid_locations = [normalize(l) for l in cfg["filters"]["locations"]]
-    loc_normalized = normalize(location)
-    loc_match = any(loc in loc_normalized for loc in valid_locations) or \
-                any(x in loc_normalized for x in ["remote", "worldwide", "anywhere", "global", "🌍"])
+    # Must be a dev role
+    if not is_dev_role(title):
+        return False, False
     
-    if not loc_match:
-        logging.debug(f"Filtered out by location: {location}")
-        return False
+    # Check location
+    is_valid, is_unverified = check_location(location)
+    if not is_valid:
+        return False, False
     
-    # 3. Exclude internships/contracts
-    exclude = [normalize(e) for e in cfg["filters"]["exclude"]]
-    text = normalize(f"{title} {' '.join(tags)}")
-    if any(ex in text for ex in exclude):
-        logging.debug(f"Filtered out by exclude list: {title}")
-        return False
-    
-    return True
+    return True, is_unverified

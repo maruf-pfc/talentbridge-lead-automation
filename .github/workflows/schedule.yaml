@@ -4,7 +4,6 @@ on:
   schedule:
     # 9 AM EST = 14:00 UTC (winter) / 13:00 UTC (summer)
     # Using 14:00 UTC ensures 9 AM EST in winter; summer will be 10 AM EDT
-    # For strict 9 AM year-round, consider a Python-based time check in main.py
     - cron: '0 14 * * *'
   workflow_dispatch:  # Allow manual trigger for testing
 
